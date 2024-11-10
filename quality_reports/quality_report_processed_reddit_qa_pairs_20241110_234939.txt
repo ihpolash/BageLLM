@@ -1,0 +1,23 @@
+=== Data Quality Report ===
+
+Dataset: processed_data/processed_reddit_qa_pairs.csv
+Timestamp: 20241110_234939
+Overall Status: FAILED
+Overall Score: 0.81
+
+--- Quality Metrics ---
+Completeness: 0.80
+Consistency: 0.45
+Validity: 0.71
+Uniqueness: 0.90
+Timeliness: 1.00
+Integrity: 1.00
+Accuracy: 0.91
+
+--- Issues Found ---
+- Consistency score 0.45 below threshold 0.7
+
+--- Dataset Statistics ---
+Rows: 19
+Columns: 9
+Memory Usage: 279462 bytes

@@ -1,0 +1,34 @@
+{
+  "dataset": "processed_data/processed_reddit_qa_pairs.csv",
+  "timestamp": "20241110_234541",
+  "passed": false,
+  "issues": [
+    "Consistency score 0.45 below threshold 0.7"
+  ],
+  "metrics": {
+    "completeness": 0.8011695906432749,
+    "consistency": 0.4451843827099182,
+    "validity": 0.7134502923976608,
+    "uniqueness": 0.8962406015037593,
+    "timeliness": 1.0,
+    "integrity": 1.0,
+    "accuracy": 0.9111842105263157
+  },
+  "overall_score": 0.8095836306729873,
+  "dataset_stats": {
+    "rows": 19,
+    "columns": 9,
+    "memory_usage": 279462,
+    "column_types": {
+      "Unnamed: 0": "int64",
+      "instruction": "object",
+      "response": "object",
+      "context": "float64",
+      "category": "object",
+      "instruction_cleaned": "object",
+      "instruction_annotations": "object",
+      "response_cleaned": "object",
+      "response_annotations": "object"
+    }
+  }
+}
