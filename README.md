@@ -1,6 +1,6 @@
 # CleanBagel: Automated Data Preparation Pipeline
 
-This repository contains the implementation of CleanBagel, an automated data preparation pipeline specifically optimized for Llama 3.2 fine-tuning. The implementation covers the first two days of development, focusing on core infrastructure, cleaning pipeline, annotation system, and quality control.
+This repository contains the implementation of CleanBagel, an automated data preparation pipeline specifically optimized for Llama 3.2 fine-tuning.
 
 ## Project Structure
 ```
@@ -12,8 +12,13 @@ cleanbagel/
 │   ├── pipeline.py
 │   ├── quality_control/
 │   │   ├── __init__.py
-│   │   └── metrics.py
-│   ├── quality_controlling.py
+│   │   ├── base.py
+│   │   ├── metrics.py
+│   │   └── rules.py
+│   ├── annotation_system/
+│   │   ├── __init__.py
+│   │   ├── base.py
+│   │   └── processors.py
 │   └── s3_connector.py
 ├── tests/
 │   ├── __init__.py
@@ -39,7 +44,7 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Install spaCy language model:
+3. Install required models:
 ```bash
 python -m spacy download en_core_web_sm
 ```
@@ -69,86 +74,141 @@ aws_secret_access_key = your_secret_key
 }
 ```
 
-## Day 1 Implementation
+## Components
 
-### Core Infrastructure & Cleaning Pipeline
+### 1. Annotation System
+The annotation system provides comprehensive text analysis:
 
-1. Run the basic cleaning pipeline:
-```bash
-python run.py
+```python
+from src.annotation_system import AnnotationSystem, AnnotationConfig
+
+# Initialize
+config = AnnotationConfig(
+    enable_entities=True,
+    enable_sentiment=True,
+    enable_topics=True,
+    enable_keywords=True,
+    enable_language=True
+)
+system = AnnotationSystem(config)
+
+# Process single text
+annotations = system.annotate_text("Your text here")
+
+# Process batch
+annotations = system.process_batch(["Text 1", "Text 2"])
 ```
 
-2. Run tests for the cleaning components:
+Features:
+- Named Entity Recognition
+- Sentiment Analysis
+- Topic Detection
+- Keyword Extraction
+- Language Detection
+
+### 2. Quality Control System
+The quality control system ensures data quality through multiple dimensions:
+
+```python
+from src.quality_control import QualityController, SpecialCharacterRule
+
+# Initialize
+controller = QualityController()
+
+# Validate data
+passed, issues, metrics = controller.validate_data(your_dataframe)
+
+# Use specific rules
+rule = SpecialCharacterRule()
+result = rule.validate(your_dataframe)
+```
+
+Quality Dimensions:
+- Completeness
+- Consistency
+- Validity
+- Uniqueness
+- Timeliness
+- Integrity
+- Accuracy
+
+### 3. Cleaning Pipeline
+The cleaning pipeline processes and prepares the data:
+
+```python
+from src.pipeline import AnnotationPipeline
+
+pipeline = AnnotationPipeline()
+pipeline.process_datasets()
+```
+
+Features:
+- Text cleaning
+- Format standardization
+- Quality validation
+- Batch processing
+
+## Usage Examples
+
+### 1. Full Pipeline
+```python
+from src.pipeline import AnnotationPipeline
+
+# Initialize and run pipeline
+pipeline = AnnotationPipeline(output_dir="processed_data")
+pipeline.process_datasets()
+```
+
+### 2. Quality Control
+```python
+from src.quality_control import QualityController
+import pandas as pd
+
+# Load data
+data = pd.read_csv("your_data.csv")
+
+# Initialize controller
+controller = QualityController()
+
+# Validate data
+passed, issues, metrics = controller.validate_data(data)
+
+# Check results
+print(f"Passed: {passed}")
+print(f"Issues: {issues}")
+print(f"Overall Score: {metrics.overall_score}")
+```
+
+### 3. Annotation System
+```python
+from src.annotation_system import AnnotationSystem
+
+# Initialize
+system = AnnotationSystem()
+
+# Process text
+text = "Apple Inc. is planning to release a new iPhone next year."
+result = system.annotate_text(text)
+
+# View results
+print("Entities:", result['entities'])
+print("Sentiment:", result['sentiment'])
+print("Topics:", result['topics'])
+```
+
+## Testing
+
+Run all tests:
+```bash
+python -m unittest discover tests
+```
+
+Run specific test suites:
 ```bash
 python -m unittest tests/test_cleaner.py
-```
-
-### Monitoring the Pipeline
-
-Check the logs in `pipeline.log` for detailed execution information.
-
-## Day 2 Implementation
-
-### Annotation System
-
-1. Test the annotation system:
-```bash
 python -m unittest tests/test_annotation_system.py
-```
-
-2. Process a single file with annotations:
-```bash
-python -m src.pipeline --file your_file.csv --annotate
-```
-
-### Quality Control
-
-1. Run quality control on a dataset:
-```bash
-python -m src.quality_controlling your_dataset.csv
-```
-
-2. Run with custom configuration:
-```bash
-python -m src.quality_controlling your_dataset.csv --config config/quality_config.json
-```
-
-3. Run quality control tests:
-```bash
 python -m unittest tests/test_quality_control.py
 ```
-
-## Pipeline Components
-
-### Day 1 Components:
-
-1. **AdvancedCleaner**
-   - Text cleaning and normalization
-   - Boilerplate removal
-   - Format standardization
-   - Quality validation
-
-2. **Pipeline Infrastructure**
-   - S3 connectivity
-   - Batch processing
-   - Error handling
-   - Logging
-
-### Day 2 Components:
-
-1. **AnnotationSystem**
-   - Named Entity Recognition
-   - Sentiment Analysis
-   - Topic Detection
-   - Keyword Extraction
-   - Language Detection
-
-2. **QualityControl**
-   - Data completeness validation
-   - Consistency checking
-   - Validity assessment
-   - Uniqueness verification
-   - Custom validation rules
 
 ## Output Structure
 
@@ -170,38 +230,7 @@ processed_data/
 └── processed_dataset2_metrics.json
 ```
 
-## Testing
-
-Run all tests:
-```bash
-python -m unittest discover tests
-```
-
-Run specific test suites:
-```bash
-python -m unittest tests/test_cleaner.py
-python -m unittest tests/test_annotation_system.py
-python -m unittest tests/test_quality_control.py
-```
-
-## Monitoring and Logging
-
-- Pipeline logs: `pipeline.log`
-- Quality control logs: `quality_control.log`
-- Rich console output for quality metrics
-- Detailed JSON reports for each processed dataset
-
-## Error Handling
-
-The pipeline includes comprehensive error handling:
-- S3 connection issues
-- File processing errors
-- Data validation failures
-- Quality control violations
-
-Check the log files for detailed error information.
-
-## Development Roadmap
+## Development Timeline
 
 ### Day 1 ✅
 - [x] Environment setup
@@ -210,10 +239,10 @@ Check the log files for detailed error information.
 - [x] Initial testing
 
 ### Day 2 ✅
-- [x] Annotation system
-- [x] Quality control implementation
+- [x] Annotation system implementation
+- [x] Quality control metrics
+- [x] Validation rules
 - [x] Integration testing
-- [x] Documentation
 
 ## Contributing
 
@@ -223,14 +252,38 @@ Check the log files for detailed error information.
 4. Push to the branch
 5. Create a Pull Request
 
+## Troubleshooting
+
+Common issues and solutions:
+
+1. Import Errors:
+```bash
+pip install -e .  # Install package in editable mode
+```
+
+2. Model Download Issues:
+```bash
+python -m spacy download en_core_web_sm --force
+```
+
+3. Quality Control Failures:
+- Check the quality_reports directory for detailed error reports
+- Adjust thresholds in config/quality_config.json
+- Review the validation rules in the logs
+
 ## Support
 
-For any issues or questions, please check:
-1. The logs in `pipeline.log` and `quality_control.log`
-2. The generated quality reports
-3. The test results
+For any issues:
+1. Check the logs in:
+   - pipeline.log
+   - quality_control.log
+2. Review the quality reports
+3. Run the test suite
+4. Create a GitHub issue with:
+   - Detailed description
+   - Relevant log excerpts
+   - Steps to reproduce
 
-If the issue persists, please create a GitHub issue with:
-- Detailed description of the problem
-- Relevant log excerpts
-- Steps to reproduce
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
